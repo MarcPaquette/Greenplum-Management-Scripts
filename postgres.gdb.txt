@@ -7,11 +7,8 @@ meminfo - dump process memory utilization info
 test - test function
 
 
-++ Mike, Marc, and Archana
-
-
 We have started building some really basic GDB macros to help with quickly troubleshooting live issues and RCAs.   Its still a work in progress but let me know if you have a good use case we.  Also if you want to write a macro yourself and need help/advise please let me know.
-
+--Dan Lynch
 
 
 1.  Create ".gdbinit" in your current working directory and put these lines in there.  Otherwise you can manually run these commands in the gdb prompt.
