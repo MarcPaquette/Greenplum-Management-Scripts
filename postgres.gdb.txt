@@ -1,0 +1,79 @@
+[root@mdw gdb]# gdb -c core.20043_Mar15 /usr/local/greenplum-db-4.2.3.1/bin/postgres
+(gdb) source ./gdb_macros.gdb
+btall - dump back trace for all threads
+dump_locks - dumps global locks
+pidinfo - dump info about the gpdb postmaster instance
+meminfo - dump process memory utilization info
+test - test function
+
+
+++ Mike, Marc, and Archana
+
+
+We have started building some really basic GDB macros to help with quickly troubleshooting live issues and RCAs.   Its still a work in progress but let me know if you have a good use case we.  Also if you want to write a macro yourself and need help/advise please let me know.
+
+
+
+1.  Create ".gdbinit" in your current working directory and put these lines in there.  Otherwise you can manually run these commands in the gdb prompt.
+set print pretty on
+set pagination off
+source ./postgres.gdb
+
+
+2. 
+(gdb) help user
+User-defined commands.
+The commands in this class are those defined by the user.
+Use the "define" command to define a command.
+
+List of commands:
+
+btall -- 	list threds and run backtrace for each
+dump_locks -- 	Dumps global lock IDs and what locks are held
+find_elock_owner -- 	search global memory for exclusive locks
+meminfo -- 	print common user defined GUCs and memory utilization
+pidinfo -- 	dump the current process state and lock status information
+
+
+
+
+
+here is an example use case
+
+1.  we have a bunch of process stuck in startup.. why??
+2.  there are multiple idle pids 
+
+run command :
+gdb -x .gdbinit -q -n -ex "pidinfo" -batch -p 26018 /usr/local/greenplum-db-4.2.4.0/bin/postgres
+
+My execute Path: /usr/local/greenplum-db-4.2.4.0/bin/postgres
+PID: 26018
+SessionID: 31
+Number of segments: 48
+dbid: 1
+segindex: -1
+
+State information:
+SemId: 270106639
+Gp_role: dispatch
+QueryCancelPending: 0
+QueryCancelCleanup: 0
+waitStatus: 0
+lwWaiting: 1  <<< this guy is waiting
+lwExclusive: 1
+lwWaitLink: 0
+waitLock: 0
+waitProcLock: 0
+waitLockMode: 0
+heldLocks: 0
+waitLock: 0
+
+
+3.  Find the process we are waiting on:
+gdb -x .gdbinit -q -n -ex "find_elock_owner" -batch -p 26018 /usr/local/greenplum-db-4.2.4.0/bin/postgres
+
+
+Found shmControlLock exclusive lock held by process 21489
+
+4.  Generate a core file for pid 21489 for RCA.  kill the pid/session to restore DB ( depending on circumstances )
+

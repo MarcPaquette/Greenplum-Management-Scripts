@@ -1,0 +1,1 @@
+nohup /usr/local/greenplum-db/bin/lib/gpcheckcat -A
