@@ -6,6 +6,6 @@ psql -t -c "select distinct hostname from gp_segment_configuration where hostnam
 gpstop -af # stop database before system shutdown
 su - #log in as root
 source /usr/local/greenplum-db/greenplum_path.sh # source the greenplum environment
-pssh -f ~gpadmin/host_shutdown -e "shutdown -h now" # shutdown all segment servers except for mdw
+gpssh -f ~gpadmin/host_shutdown -e "shutdown -h now" # shutdown all segment servers except for mdw
 shutdown -h now # shutdown mdw
 
